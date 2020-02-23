@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.902
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerchBuddy", "PerchBuddy\PerchBuddy.csproj", "{FE2DCEB0-9634-478F-948B-93E10BF5DBAC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE2DCEB0-9634-478F-948B-93E10BF5DBAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE2DCEB0-9634-478F-948B-93E10BF5DBAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE2DCEB0-9634-478F-948B-93E10BF5DBAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE2DCEB0-9634-478F-948B-93E10BF5DBAC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED4D2033-DFDE-406C-B0E6-EF67D4CA6DC2}
+	EndGlobalSection
+EndGlobal
