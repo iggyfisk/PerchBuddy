@@ -4,9 +4,43 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PerchBuddy"
+        xmlns:uc="clr-namespace:PerchBuddy"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="PerchBuddy" Width="800" Height="1000">
+    <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26" />
+            <RowDefinition Height="9*" />
+            <RowDefinition Height="5*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <Label Content="Ctrl+Shift+P during load screen"  Grid.Column="0" HorizontalAlignment="Left"/>
+            <Label x:Name="lblHotkey" Width="90" Grid.Column="1" HorizontalAlignment="Left"/>
+        </Grid>
+        <ScrollViewer Grid.Row="1" >
+            <ItemsControl Name="icPlayers">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <uc:PlayerView CurrentPlayer="{Binding}" Grid.Column="1" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="lstLog" Grid.Column="0" />
+            <Image x:Name="imgScreen" Grid.Column="1"/>
+        </Grid>
+
     </Grid>
 </Window>

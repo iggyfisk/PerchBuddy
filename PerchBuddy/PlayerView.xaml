@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="PerchBuddy.PlayerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PerchBuddy"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid x:Name="grdRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26" />
+            <RowDefinition Height="1*" MaxHeight="300" />
+        </Grid.RowDefinitions>
+        <TextBox Text="{Binding Path=CurrentPlayer.Name}" x:Name="txtName" TextWrapping="NoWrap" MaxLines="1" Grid.Row="0" Width="160" KeyUp="TxtName_KeyUp" LostFocus="TxtName_LostFocus" HorizontalAlignment="Left" />
+        <Label Content="Confidence:&#xD;&#xA;" HorizontalAlignment="Left" Margin="165,0,0,0" Width="75"/>
+        <Label Content="{Binding Path=CurrentPlayer.Confidence}" x:Name="lblConfidence" HorizontalAlignment="Left" Margin="240,0,0,0" Width="32"/>
+        <Button x:Name="btnForce" IsEnabled="False" Content="Force" HorizontalAlignment="Left" Margin="272,0,0,0" Width="75" Click="BtnForce_Click" />
+        <DataGrid x:Name="grdReplays" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Game" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <Hyperlink NavigateUri="{Binding URL}" RequestNavigate="Hyperlink_RequestNavigate">
+                                    <Run Text="{Binding Name}" />
+                                </Hyperlink>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Uploaded" Binding="{Binding Path=UploadDate, StringFormat='yyyy-MM-dd HH:mm'}" Width="150" />
+                <DataGridTextColumn Header="Type" Binding="{Binding GameType}" Width="45" />
+            </DataGrid.Columns>            
+        </DataGrid>
+    </Grid>
+</UserControl>
