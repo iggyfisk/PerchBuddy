@@ -88,6 +88,12 @@
   <PropertyGroup>
     <SignManifests>true</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>PerchBuddy.App</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -200,4 +206,14 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Genesis.Tesseract4.4.0.2.11\build\Genesis.Tesseract4.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Genesis.Tesseract4.4.0.2.11\build\Genesis.Tesseract4.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>if "$(ConfigurationName)"=="Release" (
+    del $(TargetDir)PerchBuddy.exe.manifest /Q /S
+    del $(TargetDir)PerchBuddy.application /Q /S
+    del $(TargetDir)Newtonsoft.Json.xml /Q /S
+    rmdir $(TargetDir)x86 /Q /S
+    rmdir $(TargetDir)app.publish /Q /S
+)
+	</PostBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -10,7 +10,6 @@ namespace PerchBuddy
         public void Log(string message)
         {
             LogContent.Add(string.Format("[{0}]: {1}", DateTime.Now.ToLongTimeString(), message));
-            var a = new Player();
         }
         
         public ObservableCollection<Player> Players = new ObservableCollection<Player>();
@@ -51,5 +50,13 @@ namespace PerchBuddy
         public string GameType { get; set; }
         public DateTime UploadDate { get; set; }
         public string URL { get; set; }
+        public bool Official { get; set; }
+        public string OfficialMarker
+        {
+            get
+            {
+                return this.Official ? "✓" : string.Empty;
+            }
+        }
     }
 }

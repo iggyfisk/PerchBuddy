@@ -6,16 +6,16 @@
              xmlns:local="clr-namespace:PerchBuddy"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="grdRoot">
+    <Grid x:Name="grdRoot" Margin="0,5,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="26" />
             <RowDefinition Height="1*" MaxHeight="300" />
         </Grid.RowDefinitions>
-        <TextBox Text="{Binding Path=CurrentPlayer.Name}" x:Name="txtName" TextWrapping="NoWrap" MaxLines="1" Grid.Row="0" Width="160" KeyUp="TxtName_KeyUp" LostFocus="TxtName_LostFocus" HorizontalAlignment="Left" />
+        <TextBox Text="{Binding Path=CurrentPlayer.Name}" x:Name="txtName" TextWrapping="NoWrap" MaxLines="1" Grid.Row="0" Width="153" Margin="7,0,0,0" KeyUp="TxtName_KeyUp" LostFocus="TxtName_LostFocus" HorizontalAlignment="Left" />
         <Label Content="Confidence:&#xD;&#xA;" HorizontalAlignment="Left" Margin="165,0,0,0" Width="75"/>
         <Label Content="{Binding Path=CurrentPlayer.Confidence}" x:Name="lblConfidence" HorizontalAlignment="Left" Margin="240,0,0,0" Width="32"/>
         <Button x:Name="btnForce" IsEnabled="False" Content="Force" HorizontalAlignment="Left" Margin="272,0,0,0" Width="75" Click="BtnForce_Click" />
-        <DataGrid x:Name="grdReplays" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True">
+        <DataGrid x:Name="grdReplays" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" Visibility="Collapsed">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Game" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
@@ -28,9 +28,17 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Official" Binding="{Binding OfficialMarker}" Width="50">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Uploaded" Binding="{Binding Path=UploadDate, StringFormat='yyyy-MM-dd HH:mm'}" Width="150" />
                 <DataGridTextColumn Header="Type" Binding="{Binding GameType}" Width="45" />
             </DataGrid.Columns>            
         </DataGrid>
+        <Label x:Name="lblNoResults" Content="No replays found" Grid.Row="1" Visibility="Collapsed" />
     </Grid>
 </UserControl>

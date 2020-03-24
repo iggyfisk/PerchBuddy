@@ -42,7 +42,10 @@ namespace PerchBuddy
         {
             try
             {
-                this.Dispatcher.Invoke(() => CurrentPlayer.Replays.Clear());
+                this.Dispatcher.Invoke(() => {
+                    CurrentPlayer.Replays.Clear();
+                    lblNoResults.Visibility = Visibility.Collapsed;
+                });
 
                 var httpClient = new HttpClient();
                 var response = await httpClient.GetAsync(string.Format("{0}/api/search?player_name={1}&max_size=5", BaseURL, System.Net.WebUtility.UrlEncode(e.Argument.ToString())));
@@ -56,9 +59,24 @@ namespace PerchBuddy
                         Name = replay.name,
                         UploadDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64((string)replay.timestamp)).DateTime,
                         GameType = replay.type,
-                        URL = replay.url
+                        URL = replay.url,
+                        Official = replay.official
                     }));
                 };
+
+                this.Dispatcher.Invoke(() =>
+                {
+                    if (grdReplays.HasItems)
+                    {
+                        grdReplays.Visibility = Visibility.Visible;
+                        lblNoResults.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        grdReplays.Visibility = Visibility.Hidden;
+                        lblNoResults.Visibility = Visibility.Visible;
+                    }
+                });
             }
             catch (Exception exc)
             {

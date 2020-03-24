@@ -24,15 +24,17 @@
             <Label Content="Ctrl+Shift+P during load screen"  Grid.Column="0" HorizontalAlignment="Left"/>
             <Label x:Name="lblHotkey" Width="90" Grid.Column="1" HorizontalAlignment="Left"/>
         </Grid>
-        <ScrollViewer Grid.Row="1" >
-            <ItemsControl Name="icPlayers">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <uc:PlayerView CurrentPlayer="{Binding}" Grid.Column="1" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <Border Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Grid.Row="1">
+            <ScrollViewer>
+                <ItemsControl Name="icPlayers">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <uc:PlayerView CurrentPlayer="{Binding}" Grid.Column="1" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />

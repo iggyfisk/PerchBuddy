@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows;
 using System.ComponentModel;
+// For local file dry runs
+using System.Drawing;
 
 namespace PerchBuddy
 {
@@ -16,6 +18,11 @@ namespace PerchBuddy
         private int screencount = 1;
         private bool loading = false;
 
+        public static void Log(string message)
+        {
+            Data.Log(message);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -26,17 +33,11 @@ namespace PerchBuddy
             loadScraper.RunWorkerCompleted += loadScrapeCompleted;
         }
 
-        public static void Log(string message)
-        {
-            Data.Log(message);
-        }
-
-
         private void loadScrapeStart(object sender, DoWorkEventArgs e)
         {
             var screencap = Screenshot.Capture(Screenshot.enmScreenCaptureMode.Window);
             // For local file dry runs
-            //Bitmap screencap = System.Drawing.Image.FromFile(@"C:\Projects\PerchBuddy\Load4_" + screencount++.ToString() + ".png") as Bitmap;
+            //screencap = System.Drawing.Image.FromFile(@"C:\Projects\PerchBuddy\Load1440-" + screencount++.ToString() + ".png") as Bitmap;
 
             this.Dispatcher.Invoke(() =>
             {
@@ -64,7 +65,7 @@ namespace PerchBuddy
 
         private void HotkeyPressed()
         {
-            Log("Loadscreen hotkey pressed");
+            Log("Load screen hotkey pressed");
 
             if (loading)
             {
