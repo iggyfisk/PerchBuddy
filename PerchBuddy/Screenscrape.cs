@@ -34,6 +34,13 @@ namespace PerchBuddy
             /// </summary>
             public int NameMargin { get; set; }
 
+            // For the Allies window after the game started
+            public int AlliesLeft { get; set; }
+            public int AlliesTop { get; set; }
+            public int AlliesMargin { get; set; }
+            public int AlliesWidth { get; set; }
+            public int AlliesHeight { get; set; }
+
             public int? GetPlayerCount(Bitmap screenshot)
             {
                 int? playerCount = null;
@@ -50,7 +57,7 @@ namespace PerchBuddy
                 return playerCount;
             }
 
-            public IEnumerable<Rect> GetNameBoxes(int playerCount)
+            public IEnumerable<Rect> GetLoadScreenNameBoxes(int playerCount)
             {
                 var team1 = new List<Rect>();
                 var team2 = new List<Rect>();
@@ -63,11 +70,21 @@ namespace PerchBuddy
 
                 return team2.Concat(team1);
             }
+
+            public IEnumerable<Rect> GetAlliesNameBoxes()
+            {
+                var nameBoxes = new List<Rect>();
+                for (int p = 0; p < 7; ++p)
+                {
+                    nameBoxes.Add(new Rect(this.AlliesLeft, this.AlliesTop + (this.AlliesMargin * p), this.AlliesWidth, this.AlliesHeight));
+                }
+                return nameBoxes;
+            }
         }
 
-        private static readonly Dictionary<Tuple<int, int>, ScreenMap> Resolutions = new Dictionary<Tuple<int, int>, ScreenMap>()
+        private static readonly Dictionary<(int, int), ScreenMap> Resolutions = new Dictionary<(int, int), ScreenMap>()
         {
-            [new Tuple<int, int>(1920, 1080)] = new ScreenMap()
+            [(1920, 1080)] = new ScreenMap()
             {
                 TeamNameX = 256,
                 TeamNameY = new SortedDictionary<int, int>()
@@ -82,9 +99,14 @@ namespace PerchBuddy
                 Team2Left = 1365,
                 NameWidth = 200,
                 NameHeight = 23,
-                NameMargin = 88
+                NameMargin = 88,
+                AlliesLeft = 551,
+                AlliesTop = 176,
+                AlliesMargin = 49,
+                AlliesWidth = 240,
+                AlliesHeight = 30
             },
-            [new Tuple<int, int>(2560, 1440)] = new ScreenMap()
+            [(2560, 1440)] = new ScreenMap()
             {
                 TeamNameX = 401,
                 TeamNameY = new SortedDictionary<int, int>()
@@ -101,7 +123,7 @@ namespace PerchBuddy
                 NameHeight = 25,
                 NameMargin = 110
             },
-            [new Tuple<int, int>(3440, 1440)] = new ScreenMap()
+            [(3440, 1440)] = new ScreenMap()
             {
                 TeamNameX = 842,
                 TeamNameY = new SortedDictionary<int, int>()
@@ -117,6 +139,28 @@ namespace PerchBuddy
                 NameWidth = 240,
                 NameHeight = 25,
                 NameMargin = 110
+            },
+            [(3840, 2160)] = new ScreenMap()
+            {
+                TeamNameX = 690,
+                TeamNameY = new SortedDictionary<int, int>()
+                {
+                    [1] = 998,
+                    [2] = 922,
+                    [3] = 845,
+                    [4] = 768
+                },
+                TeamNameMargin = 57,
+                Team1Left = 825,
+                Team2Left = 2635,
+                NameWidth = 350,
+                NameHeight = 32,
+                NameMargin = 154,
+                AlliesLeft = 1101,
+                AlliesTop = 353,
+                AlliesMargin = 98,
+                AlliesWidth = 365,
+                AlliesHeight = 57
             }
         };
 
@@ -145,19 +189,17 @@ namespace PerchBuddy
             }
         }
 
-        public static List<Tuple<string, float>> ScrapePlayerNames(Bitmap screenshot, Dispatcher dispatcher)
+        public static List<Tuple<string, float>> ScrapeLoadScreen(Bitmap screenshot, Dispatcher dispatcher)
         {
-            var names = new List<Tuple<string, float>>();
-            var resolution = new Tuple<int, int>(screenshot.Width, screenshot.Height);
-
+            var resolution = (screenshot.Width, screenshot.Height);
             if (!Resolutions.ContainsKey(resolution))
             {
                 throw new Exception(string.Format("Resolution {0}x{1} not mapped, take a screenshot of the load screen and send to iggy", resolution.Item1, resolution.Item2));
             }
 
             var screenMap = Resolutions[resolution];
-            int? playerCount = screenMap.GetPlayerCount(screenshot);
 
+            int? playerCount = screenMap.GetPlayerCount(screenshot);
             if (!playerCount.HasValue)
             {
                 throw new Exception("Couldn't detect game type");
@@ -165,9 +207,29 @@ namespace PerchBuddy
 
             dispatcher.Invoke(() => MainWindow.Log(string.Format("Detected gametype {0}v{0}", playerCount)));
 
+            return ScrapeNames(screenshot, screenMap.GetLoadScreenNameBoxes(playerCount.Value), dispatcher);
+        }
+
+        public static List<Tuple<string, float>> ScrapeAlliesScreen(Bitmap screenshot, Dispatcher dispatcher)
+        {
+            var resolution = (screenshot.Width, screenshot.Height);
+            if (!Resolutions.ContainsKey(resolution))
+            {
+                throw new Exception(string.Format("Resolution {0}x{1} not mapped, take a screenshot of the allies screen and send to iggy", resolution.Item1, resolution.Item2));
+            }
+
+            var screenMap = Resolutions[resolution];
+
+            return ScrapeNames(screenshot, screenMap.GetAlliesNameBoxes(), dispatcher, true);
+        }
+
+        private static List<Tuple<string, float>> ScrapeNames(Bitmap screenshot, IEnumerable<Rect> nameBoxes, Dispatcher dispatcher, bool abortOnFailure = false)
+        {
+            var names = new List<Tuple<string, float>>();
             using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
             {
-                foreach (var box in screenMap.GetNameBoxes(playerCount.Value))
+                bool previousFailed = false;
+                foreach (var box in nameBoxes)
                 {
                     var images = new List<Bitmap>
                     {
@@ -210,13 +272,21 @@ namespace PerchBuddy
                         }
                     }
 
-                    if (results.Count == 0)
+                    var bestResult = results.OrderByDescending(r => r.Item2).FirstOrDefault();
+                    if (results.Count == 0 ||
+                        (abortOnFailure && (bestResult.Item1 == "|" || bestResult.Item2 < 0.4)))
                     {
                         dispatcher.Invoke(() => MainWindow.Log(string.Format("No results for box {0},{1}-{2},{3}", box.X1, box.Y1, box.X2, box.Y2)));
+                        if (abortOnFailure && previousFailed)
+                        {
+                            dispatcher.Invoke(() => MainWindow.Log("Two failed boxes in a row, aborting"));
+                            return names;
+                        }
+
+                        previousFailed = true;
                         continue;
                     }
 
-                    var bestResult = results.OrderByDescending(r => r.Item2).First();
                     var loweredName = bestResult.Item1.ToLower();
                     var name = new Tuple<string, float>(Remap.ContainsKey(loweredName) ? Remap[loweredName] : bestResult.Item1, bestResult.Item2);
                     names.Add(name);
@@ -232,6 +302,8 @@ namespace PerchBuddy
                     }
                 }
             }
+
+            dispatcher.Invoke(() => MainWindow.Log(string.Format("{0} names scraped", names.Count)));
             return names;
         }
     }

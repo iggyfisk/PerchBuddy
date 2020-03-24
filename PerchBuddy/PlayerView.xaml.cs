@@ -100,7 +100,7 @@ namespace PerchBuddy
 
             grdReplays.ItemsSource = CurrentPlayer.Replays;
 
-            if (CurrentPlayer.Confidence.HasValue && CurrentPlayer.Confidence.Value < 0.5)
+            if (CurrentPlayer.Confidence.HasValue && CurrentPlayer.Confidence.Value < 0.6)
             {
                 btnForce.IsEnabled = true;
             }

@@ -35,9 +35,10 @@ namespace PerchBuddy
 
         private void loadScrapeStart(object sender, DoWorkEventArgs e)
         {
+            var allies = (bool)e.Argument;
             var screencap = Screenshot.Capture(Screenshot.enmScreenCaptureMode.Window);
             // For local file dry runs
-            //screencap = System.Drawing.Image.FromFile(@"C:\Projects\PerchBuddy\Load1440-" + screencount++.ToString() + ".png") as Bitmap;
+            //screencap = System.Drawing.Image.FromFile(@"C:\Projects\PerchBuddy\4k_" + screencount++.ToString() + ".png") as Bitmap;
 
             this.Dispatcher.Invoke(() =>
             {
@@ -47,8 +48,9 @@ namespace PerchBuddy
 
             try
             {
-                var names = Screenscrape.ScrapePlayerNames(screencap, this.Dispatcher);
-                e.Result = names;
+                e.Result = allies
+                    ? Screenscrape.ScrapeAlliesScreen(screencap, this.Dispatcher)
+                    : Screenscrape.ScrapeLoadScreen(screencap, this.Dispatcher);
             }
             catch (Exception exc)
             {
@@ -62,26 +64,24 @@ namespace PerchBuddy
             loading = false;
         }
 
-
-        private void HotkeyPressed()
+        private void HotKeyPressed(bool allies = false)
         {
-            Log("Load screen hotkey pressed");
+            Log(allies ? "Allies window hotkey pressed" : "Load screen hotkey pressed");
 
             if (loading)
             {
                 Log("Ignoring double scrape");
                 return;
             }
-            loading = true;
 
-            lblHotkey.Content = DateTime.Now.ToLongTimeString();
-            loadScraper.RunWorkerAsync();
+            loading = true;
+            loadScraper.RunWorkerAsync(allies);
         }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            Hotkey.Start(this, HotkeyPressed);
+            Hotkey.Start(this, (() => HotKeyPressed()), (() => HotKeyPressed(true)));
         }
 
         protected override void OnClosed(EventArgs e)

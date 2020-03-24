@@ -21,8 +21,7 @@
                 <ColumnDefinition Width="1*" />
                 <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
-            <Label Content="Ctrl+Shift+P during load screen"  Grid.Column="0" HorizontalAlignment="Left"/>
-            <Label x:Name="lblHotkey" Width="90" Grid.Column="1" HorizontalAlignment="Left"/>
+            <Label Content="Ctrl+Shift+P during load screen, Ctrl+Shift+O with allies window open"  Grid.Column="0" HorizontalAlignment="Left"/>
         </Grid>
         <Border Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Grid.Row="1">
             <ScrollViewer>
