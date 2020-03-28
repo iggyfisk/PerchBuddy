@@ -121,7 +121,12 @@ namespace PerchBuddy
                 Team2Left = 1792,
                 NameWidth = 220,
                 NameHeight = 25,
-                NameMargin = 110
+                NameMargin = 110,
+                AlliesLeft = 735,
+                AlliesTop = 236,
+                AlliesMargin = 65,
+                AlliesWidth = 290,
+                AlliesHeight = 40
             },
             [(3440, 1440)] = new ScreenMap()
             {
@@ -286,6 +291,7 @@ namespace PerchBuddy
                         previousFailed = true;
                         continue;
                     }
+                    previousFailed = false;
 
                     var loweredName = bestResult.Item1.ToLower();
                     var name = new Tuple<string, float>(Remap.ContainsKey(loweredName) ? Remap[loweredName] : bestResult.Item1, bestResult.Item2);
