@@ -47,8 +47,11 @@ namespace PerchBuddy
                     lblNoResults.Visibility = Visibility.Collapsed;
                 });
 
+                var nameToSearch = e.Argument.ToString();
+                nameToSearch += nameToSearch.Length <= 4 ? "#" : string.Empty;
+
                 var httpClient = new HttpClient();
-                var response = await httpClient.GetAsync(string.Format("{0}/api/search?player_name={1}&max_size=5", BaseURL, System.Net.WebUtility.UrlEncode(e.Argument.ToString())));
+                var response = await httpClient.GetAsync(string.Format("{0}/api/search?player_name={1}&max_size=5", BaseURL, System.Net.WebUtility.UrlEncode(nameToSearch)));
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
 
