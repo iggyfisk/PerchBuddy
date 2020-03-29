@@ -129,6 +129,7 @@
     </Compile>
     <Compile Include="Screenscrape.cs" />
     <Compile Include="Screenshot.cs" />
+    <Compile Include="SettingsBinding.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
