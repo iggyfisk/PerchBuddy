@@ -11,6 +11,9 @@ namespace PerchBuddy
 {
     public static class Screenscrape
     {
+        private static readonly Color LoadScreenTeamColor = Color.FromArgb(255, 212, 40);
+        private static readonly Color LoadScreenPlayerColor = Color.FromArgb(255, 221, 51);
+
         private class ScreenMap
         {
             /// <summary>
@@ -47,7 +50,7 @@ namespace PerchBuddy
                 foreach (var kvp in this.TeamNameY)
                 {
                     var color = screenshot.GetPixel(this.TeamNameX, kvp.Value);
-                    if (color.R == 255 && color.G == 212 && color.B == 40)
+                    if (color.Equals(LoadScreenTeamColor))
                     {
                         playerCount = kvp.Key;
                         break;
@@ -194,6 +197,34 @@ namespace PerchBuddy
             }
         }
 
+        private static int ColorDistance(Color a, Color b)
+        {
+            return Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);
+        }
+
+        private static Bitmap TextHighlight(Bitmap image, IEnumerable<Rect> areas, Color textColor, int maxDistance = 0, bool blackOnWhite = false)
+        {
+            foreach (var area in areas)
+            {
+                for (var x = area.X1; x < area.X2; ++x)
+                {
+                    for (var y = area.Y1; y < area.Y2; ++y)
+                    {
+                        if (ColorDistance(image.GetPixel(x, y), textColor) > maxDistance)
+                        {
+                            image.SetPixel(x, y, blackOnWhite ? Color.White : Color.Black);
+                        }
+                        else if (blackOnWhite)
+                        {
+                            image.SetPixel(x, y, Color.Black);
+                        }
+                    }
+                }
+            }
+
+            return image;
+        }
+
         public static List<Tuple<string, float>> ScrapeLoadScreen(Bitmap screenshot, Dispatcher dispatcher)
         {
             var resolution = (screenshot.Width, screenshot.Height);
@@ -228,41 +259,55 @@ namespace PerchBuddy
             return ScrapeNames(screenshot, screenMap.GetAlliesNameBoxes(), dispatcher, true);
         }
 
-        private static List<Tuple<string, float>> ScrapeNames(Bitmap screenshot, IEnumerable<Rect> nameBoxes, Dispatcher dispatcher, bool abortOnFailure = false)
+        private static List<Tuple<string, float>> ScrapeNames(Bitmap screenshot, IEnumerable<Rect> nameBoxes, Dispatcher dispatcher, bool alliesWindow = false)
         {
+            var fullSize = new Rectangle(0, 0, screenshot.Width, screenshot.Height);
+            var images = new List<Bitmap>
+                {
+                    // Slightly different color variations of the screenshot, the OCR can produce wildly different results for each of them
+                    screenshot,
+                    screenshot.Clone(fullSize, PixelFormat.Format4bppIndexed),
+                    screenshot.Clone(fullSize, PixelFormat.Format8bppIndexed),
+                };
+
+            if (!alliesWindow)
+            {
+                images.Add(TextHighlight(screenshot.Clone(fullSize, screenshot.PixelFormat), nameBoxes, LoadScreenPlayerColor));
+                images.Add(TextHighlight(screenshot.Clone(fullSize, screenshot.PixelFormat), nameBoxes, LoadScreenPlayerColor, blackOnWhite: true));
+                images.Add(TextHighlight(screenshot.Clone(fullSize, screenshot.PixelFormat), nameBoxes, LoadScreenPlayerColor, 30));
+            }
+
+            var imagePix = new List<Pix>();
+            foreach (var image in images)
+            {
+                using (var byteStream = new MemoryStream())
+                {
+                    image.Save(byteStream, _tiff, _noCompression);
+                    imagePix.Add(Pix.LoadTiffFromMemory(byteStream.ToArray()));
+                }
+            }
+
             var names = new List<Tuple<string, float>>();
             using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
             {
                 bool previousFailed = false;
                 foreach (var box in nameBoxes)
                 {
-                    var images = new List<Bitmap>
+                    var rects = new List<Rect>
                     {
-                        // Bunch of slightly different cropped images of the name, the OCR can produce wildly different results for each of them
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1, box.Y1, box.Width, box.Height), PixelFormat.Format32bppArgb),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1 - 1, box.Width, box.Height), PixelFormat.Format32bppArgb),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1 - 2, box.Width, box.Height), PixelFormat.Format32bppArgb),
-
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1, box.Y1, box.Width, box.Height), PixelFormat.Format4bppIndexed),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1 - 1, box.Width, box.Height), PixelFormat.Format4bppIndexed),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1 - 2, box.Width, box.Height), PixelFormat.Format4bppIndexed),
-
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1, box.Y1, box.Width, box.Height), PixelFormat.Format8bppIndexed),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1, box.Width, box.Height), PixelFormat.Format8bppIndexed),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1 - 1, box.Width, box.Height), PixelFormat.Format8bppIndexed),
-                        screenshot.Clone(new System.Drawing.Rectangle(box.X1 - 1, box.Y1 - 2, box.Width, box.Height), PixelFormat.Format8bppIndexed)
+                        // Bunch of slightly different cropped areas of the name, the OCR can produce wildly different results for each of them
+                        new Rect(box.X1, box.Y1, box.Width, box.Height),
+                        new Rect(box.X1 - 1, box.Y1 - 1, box.Width, box.Height),
+                        new Rect(box.X1 - 1, box.Y1 - 2, box.Width, box.Height),
+                        new Rect(box.X1 - 1, box.Y1 - 2, box.Width, box.Height)
                     };
 
                     var results = new List<Tuple<string, float>>();
-                    foreach (var image in images)
+                    foreach (var img in imagePix)
                     {
-                        // Todo: try with tesseract cropping instead
-                        MemoryStream byteStream = new MemoryStream();
-                        image.Save(byteStream, _tiff, _noCompression);
-
-                        using (var img = Pix.LoadTiffFromMemory(byteStream.ToArray()))
+                        foreach (var rect in rects)
                         {
-                            using (var page = engine.Process(img, PageSegMode.SingleLine))
+                            using (var page = engine.Process(img, rect, PageSegMode.SingleLine))
                             {
                                 var text = page.GetText();
                                 var confidence = page.GetMeanConfidence();
@@ -279,10 +324,10 @@ namespace PerchBuddy
 
                     var bestResult = results.OrderByDescending(r => r.Item2).FirstOrDefault();
                     if (results.Count == 0 ||
-                        (abortOnFailure && (bestResult.Item1 == "|" || bestResult.Item2 < 0.4)))
+                        (alliesWindow && (bestResult.Item1 == "|" || bestResult.Item2 < 0.4)))
                     {
                         dispatcher.Invoke(() => MainWindow.Log(string.Format("No results for box {0},{1}-{2},{3}", box.X1, box.Y1, box.X2, box.Y2)));
-                        if (abortOnFailure && previousFailed)
+                        if (alliesWindow && previousFailed)
                         {
                             dispatcher.Invoke(() => MainWindow.Log("Two failed boxes in a row, aborting"));
                             return names;
